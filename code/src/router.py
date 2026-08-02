@@ -10,6 +10,7 @@ from .data_loader import DatasetBundle
 from .data_loader import normalize_text
 from .media_processing import MediaProcessor
 from .retrieval import Retriever
+from .reasons import ReasonContext, generate_reason
 from .security import assess
 
 class Router:
@@ -32,6 +33,29 @@ class Router:
         text=r.normalized_text; biz=self.businesses.get(r.business_id); rel=self.relations.get((r.user_id,r.business_id),{}); context=self.context.for_message(r); member=context.recipient_group; group=self.groups.get(r.group_id,{})
         caption=r.normalized_text; biz=self.businesses.get(r.business_id); rel=self.relations.get((r.user_id,r.business_id),{}); member=self.members.get((r.group_id,r.user_id),{}); group=self.groups.get(r.group_id,{})
         media=self.media.extract(r.media_type,r.media_id,self.media_paths.get(r.media_id,""))
+        risk=assess(text,biz); top=self.retriever.top(r); best=top.iloc[0]; evidence=self._evidence(top,r)
+        typ=self._type(text,r,biz); action="digest"; rule="default"; conf=.72; historical_action=None
+        if risk.score:
+            action,typ,rule,conf="mute",risk.kind,"safety",risk.score
+        elif typ=="promotion" and rel.get("promotions_opted_out_at"):
+            action,rule,conf="mute","promotion_opt_out",.88
+        elif typ=="promotion" and rel.get("allows_promotions")=="0" and int(rel.get("messages_dismissed_30d","0") or 0)>=4:
+            action,rule,conf="mute","promotion_dismissed",.88
+        elif typ in {"greeting","forward"} and (int(r.forwarded_count or 0)>=5 or member.get("group_muted_by_user")=="1"):
+            action,rule,conf="mute","forward_or_muted_group",.86
+        elif self._urgent(text,r,group):
+            action,typ,rule,conf="notify",("event" if typ=="event" else "urgent"),("urgent_direct" if f"@{r.user_id}" in text else "urgent_operational"),.88
+        elif typ=="business_update" and rel and re.search(r"delivery|pickup|ride|booking|appointment|order|transaction",text):
+            action,rule,conf="notify",("active_transaction_verified" if biz and biz.get("verified")=="1" else "active_transaction"),.88
+        elif best.score>=.78 and best.user_id==r.user_id:
+            action=best.weak_action; historical_action=action; conf=min(.89,.68+.16*float(best.similarity)); rule=f"history_{action}"
+        elif typ=="promotion":
+            action="digest" if rel.get("allows_promotions")=="1" or not rel else "mute"; rule="promotion_digest" if action=="digest" else "promotion_mute"; conf=.79
+        elif typ in {"spam","scam"}: action="mute"; rule="spam"; conf=.84
+        elif r.conversation_type=="personal" and re.search(r"\?|can you|could you|please",text) and not re.search(r"no urgency|not urgent|tomorrow",text): action="notify"; typ="personal"; rule="personal_request"; conf=.78
+        if r.media_type and not text and media["confidence"]<.3: conf=min(conf,.69); rule="uncertain_media"
+        relationship={"promotions_opted_out":bool(rel.get("promotions_opted_out_at")),"business_verified":bool(biz and biz.get("verified")=="1"),"active_transaction":rule.startswith("active_transaction"),"messages_dismissed_30d":int(rel.get("messages_dismissed_30d","0") or 0)}
+        reason=generate_reason(ReasonContext(rule,media["status"],relationship,action,typ,evidence,f"@{r.user_id}" in text,historical_action))
         risk=assess(text,biz); top=self.retriever.top(r); best=top.iloc[0]
         typ=self._type(text,r,biz); action="digest"; reason="Safe content with no immediate action can be reviewed later."; conf=.72; decisive_rule="fallback"
         text=normalize_text(" ".join(part for part in (caption, media.get("text", "")) if part)).lower()
