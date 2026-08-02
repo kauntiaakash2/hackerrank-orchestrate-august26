@@ -1,111 +1,111 @@
 message_id,action,message_type,reason,confidence,evidence_message_ids
-msg_023,,,,,
-msg_091,,,,,
-msg_090,,,,,
-msg_048,,,,,
-msg_040,,,,,
-msg_075,,,,,
-msg_005,,,,,
-msg_104,,,,,
-msg_069,,,,,
-msg_107,,,,,
-msg_070,,,,,
-msg_003,,,,,
-msg_099,,,,,
-msg_008,,,,,
-msg_092,,,,,
-msg_060,,,,,
-msg_004,,,,,
-msg_030,,,,,
-msg_045,,,,,
-msg_052,,,,,
-msg_009,,,,,
-msg_071,,,,,
-msg_016,,,,,
-msg_065,,,,,
-msg_038,,,,,
-msg_086,,,,,
-msg_014,,,,,
-msg_094,,,,,
-msg_029,,,,,
-msg_105,,,,,
-msg_002,,,,,
-msg_010,,,,,
-msg_078,,,,,
-msg_013,,,,,
-msg_018,,,,,
-msg_044,,,,,
-msg_032,,,,,
-msg_106,,,,,
-msg_006,,,,,
-msg_109,,,,,
-msg_108,,,,,
-msg_019,,,,,
-msg_088,,,,,
-msg_056,,,,,
-msg_027,,,,,
-msg_050,,,,,
-msg_083,,,,,
-msg_063,,,,,
-msg_033,,,,,
-msg_061,,,,,
-msg_020,,,,,
-msg_017,,,,,
-msg_058,,,,,
-msg_026,,,,,
-msg_047,,,,,
-msg_046,,,,,
-msg_042,,,,,
-msg_079,,,,,
-msg_098,,,,,
-msg_037,,,,,
-msg_007,,,,,
-msg_085,,,,,
-msg_001,,,,,
-msg_021,,,,,
-msg_028,,,,,
-msg_012,,,,,
-msg_064,,,,,
-msg_103,,,,,
-msg_031,,,,,
-msg_057,,,,,
-msg_087,,,,,
-msg_067,,,,,
-msg_039,,,,,
-msg_082,,,,,
-msg_066,,,,,
-msg_049,,,,,
-msg_015,,,,,
-msg_051,,,,,
-msg_097,,,,,
-msg_089,,,,,
-msg_053,,,,,
-msg_059,,,,,
-msg_024,,,,,
-msg_072,,,,,
-msg_036,,,,,
-msg_076,,,,,
-msg_055,,,,,
-msg_102,,,,,
-msg_080,,,,,
-msg_093,,,,,
-msg_034,,,,,
-msg_035,,,,,
-msg_101,,,,,
-msg_041,,,,,
-msg_011,,,,,
-msg_110,,,,,
-msg_095,,,,,
-msg_074,,,,,
-msg_073,,,,,
-msg_054,,,,,
-msg_068,,,,,
-msg_100,,,,,
-msg_062,,,,,
-msg_096,,,,,
-msg_043,,,,,
-msg_077,,,,,
-msg_081,,,,,
-msg_025,,,,,
-msg_084,,,,,
-msg_022,,,,,
+msg_023,notify,business_update,Similar messages previously received quick engagement from this user.,0.84,message_0243;message_0263;message_0275
+msg_091,mute,scam,The message requests a sensitive code or account detail under suspicious pressure.,0.95,message_0238;message_0381
+msg_090,digest,personal,Safe content with no immediate action can be reviewed later.,0.72,none
+msg_048,mute,scam,The message applies urgent QR-payment pressure without a safe verified flow.,0.91,message_0151;message_0152;message_0237
+msg_040,mute,greeting,Repeated forwarded social content is low-value for this user.,0.86,message_0136;message_0135
+msg_075,notify,business_update,A legitimate update matches the user's active transaction or booking.,0.88,message_0206;message_0205
+msg_005,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0065;message_0049;message_0066
+msg_104,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0224;message_0383;message_0050
+msg_069,mute,greeting,Repeated forwarded social content is low-value for this user.,0.86,message_0042;message_0193;message_0177
+msg_107,mute,scam,The message tries to manipulate routing and requests sensitive verification.,0.96,message_0213;message_0056;message_0195
+msg_070,mute,scam,The message requests a sensitive code or account detail under suspicious pressure.,0.95,message_0369;message_0213;message_0195
+msg_003,notify,business_update,A legitimate update matches the user's active transaction or booking.,0.88,message_0031;message_0400;message_0239
+msg_099,digest,personal,Similar useful messages were opened later without urgent engagement.,0.74,message_0227;message_0249;message_0055
+msg_008,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0296;message_0072;message_0071
+msg_092,digest,business_update,Safe content with no immediate action can be reviewed later.,0.72,none
+msg_060,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0284;message_0176;message_0404
+msg_004,notify,event,Similar messages previously received quick engagement from this user.,0.84,message_0245;message_0005;message_0246
+msg_030,mute,promotion,Similar messages were previously dismissed or suppressed by this user.,0.81,message_0115;message_0335;message_0113
+msg_045,notify,unknown,Similar messages previously received quick engagement from this user.,0.69,message_0146;message_0145
+msg_052,mute,scam,The sender identity or domain is inconsistent with the pressured financial request.,0.93,message_0207;message_0208;message_0159
+msg_009,digest,unknown,Similar useful messages were opened later without urgent engagement.,0.77,message_0074;message_0073;message_0192
+msg_071,digest,unknown,Similar useful messages were opened later without urgent engagement.,0.69,message_0197;message_0198
+msg_016,mute,unknown,Similar messages were previously dismissed or suppressed by this user.,0.74,message_0024;message_0087;message_0183
+msg_065,digest,promotion,Similar useful messages were opened later without urgent engagement.,0.84,message_0261;message_0260;message_0351
+msg_038,mute,forward,Repeated forwarded social content is low-value for this user.,0.86,message_0131;message_0132
+msg_086,digest,business_update,Media extraction is uncertain; contextual history supports this conservative route.,0.69,none
+msg_014,mute,promotion,The user opted out of or repeatedly dismissed similar marketing.,0.88,message_0017;message_0258;message_0018
+msg_094,digest,promotion,The legitimate offer can be reviewed later.,0.79,message_0356
+msg_029,mute,forward,Repeated forwarded social content is low-value for this user.,0.86,message_0113;message_0095;message_0332
+msg_105,mute,forward,Repeated forwarded social content is low-value for this user.,0.86,message_0233;message_0373
+msg_002,notify,event,Similar messages previously received quick engagement from this user.,0.72,message_0003;message_0266;message_0169
+msg_010,digest,payment,Similar useful messages were opened later without urgent engagement.,0.84,message_0011;message_0242;message_0311
+msg_078,mute,scam,The message requests a sensitive code or account detail under suspicious pressure.,0.95,message_0211;message_0212
+msg_013,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0114;message_0116;message_0081
+msg_018,mute,forward,Repeated forwarded social content is low-value for this user.,0.86,message_0026;message_0091;message_0092
+msg_044,mute,scam,The message requests a sensitive code or account detail under suspicious pressure.,0.95,message_0143;message_0144;message_0036
+msg_032,digest,unknown,Similar useful messages were opened later without urgent engagement.,0.76,message_0119;message_0285;message_0120
+msg_106,notify,personal,Similar messages previously received quick engagement from this user.,0.76,message_0234;message_0376;message_0377
+msg_006,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0067;message_0097;message_0029
+msg_109,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0151;message_0152;message_0237
+msg_108,mute,scam,The message requests a sensitive code or account detail under suspicious pressure.,0.95,message_0094;message_0093
+msg_019,mute,business_update,Similar messages were previously dismissed or suppressed by this user.,0.84,message_0277;message_0094;message_0093
+msg_088,mute,unknown,Media extraction is uncertain; contextual history supports this conservative route.,0.68,message_0115;message_0050;message_0224
+msg_056,notify,event,Similar messages previously received quick engagement from this user.,0.69,message_0167;message_0168;message_0359
+msg_027,digest,event,Similar useful messages were opened later without urgent engagement.,0.84,message_0272;message_0033;message_0007
+msg_050,notify,event,Similar messages previously received quick engagement from this user.,0.84,message_0279;message_0278;message_0246
+msg_083,digest,unknown,Media extraction is uncertain; contextual history supports this conservative route.,0.68,message_0219
+msg_063,mute,payment,Similar messages were previously dismissed or suppressed by this user.,0.68,message_0182;message_0181
+msg_033,digest,greeting,Similar useful messages were opened later without urgent engagement.,0.7,message_0121;message_0122;message_0372
+msg_061,mute,greeting,Repeated forwarded social content is low-value for this user.,0.86,message_0042;message_0193;message_0177
+msg_020,mute,unknown,Similar messages were previously dismissed or suppressed by this user.,0.68,message_0096;message_0095;message_0114
+msg_017,mute,unknown,Similar messages were previously dismissed or suppressed by this user.,0.68,message_0089;message_0090
+msg_058,mute,forward,Repeated forwarded social content is low-value for this user.,0.86,message_0241;message_0078;message_0172
+msg_026,mute,scam,The sender identity or domain is inconsistent with the pressured financial request.,0.93,message_0032;message_0028;message_0107
+msg_047,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0149;message_0150;message_0001
+msg_046,mute,scam,The message requests a sensitive code or account detail under suspicious pressure.,0.95,message_0148;message_0147
+msg_042,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0140;message_0058;message_0139
+msg_079,mute,scam,The message requests a sensitive code or account detail under suspicious pressure.,0.95,message_0369;message_0045;message_0023
+msg_098,digest,event,Safe content with no immediate action can be reviewed later.,0.72,message_0226;message_0359;message_0168
+msg_037,notify,unknown,Similar messages previously received quick engagement from this user.,0.7,message_0001;message_0130;message_0269
+msg_007,digest,unknown,Similar useful messages were opened later without urgent engagement.,0.69,message_0070;message_0069
+msg_085,digest,business_update,Media extraction is uncertain; contextual history supports this conservative route.,0.69,none
+msg_001,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0057;message_0240;message_0058
+msg_021,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0068;message_0098;message_0029
+msg_028,mute,promotion,The user opted out of or repeatedly dismissed similar marketing.,0.88,message_0034;message_0314;message_0315
+msg_012,mute,forward,Repeated forwarded social content is low-value for this user.,0.86,message_0079;message_0247;message_0080
+msg_064,mute,scam,The message requests a sensitive code or account detail under suspicious pressure.,0.95,message_0087;message_0183;message_0201
+msg_103,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0065;message_0382;message_0049
+msg_031,notify,unknown,Similar messages previously received quick engagement from this user.,0.69,message_0117;message_0249;message_0118
+msg_057,notify,unknown,Similar messages previously received quick engagement from this user.,0.72,message_0169;message_0059;message_0003
+msg_087,mute,unknown,Media extraction is uncertain; contextual history supports this conservative route.,0.68,message_0204;message_0203;message_0223
+msg_067,notify,payment,Similar messages previously received quick engagement from this user.,0.72,message_0068;message_0098;message_0029
+msg_039,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0364;message_0051;message_0037
+msg_082,notify,unknown,Media extraction is uncertain; contextual history supports this conservative route.,0.68,message_0218;message_0397
+msg_066,mute,promotion,The user opted out of or repeatedly dismissed similar marketing.,0.88,message_0402;message_0257;message_0336
+msg_049,notify,business_update,A legitimate update matches the user's active transaction or booking.,0.88,message_0154;message_0291;message_0153
+msg_015,mute,scam,The message requests a sensitive code or account detail under suspicious pressure.,0.95,message_0085;message_0199;message_0086
+msg_051,mute,promotion,The user opted out of or repeatedly dismissed similar marketing.,0.88,message_0257;message_0402;message_0337
+msg_097,digest,personal,Safe content with no immediate action can be reviewed later.,0.72,message_0366;message_0054;message_0225
+msg_089,digest,personal,Safe content with no immediate action can be reviewed later.,0.72,none
+msg_053,mute,forward,Repeated forwarded social content is low-value for this user.,0.86,message_0161;message_0411;message_0253
+msg_059,digest,unknown,Similar useful messages were opened later without urgent engagement.,0.68,message_0213;message_0195;message_0045
+msg_024,mute,promotion,The user opted out of or repeatedly dismissed similar marketing.,0.88,message_0257;message_0402;message_0337
+msg_072,mute,scam,The message requests a sensitive code or account detail under suspicious pressure.,0.95,message_0085;message_0199;message_0086
+msg_036,mute,business_update,Similar messages were previously dismissed or suppressed by this user.,0.84,message_0283;message_0127;message_0128
+msg_076,mute,scam,The sender identity or domain is inconsistent with the pressured financial request.,0.93,message_0207;message_0208;message_0159
+msg_055,notify,unknown,Similar messages previously received quick engagement from this user.,0.7,message_0166;message_0165;message_0387
+msg_102,notify,personal,Similar messages previously received quick engagement from this user.,0.82,message_0371;message_0230;message_0169
+msg_080,notify,unknown,Similar messages previously received quick engagement from this user.,0.7,message_0130;message_0190;message_0142
+msg_093,digest,event,Safe content with no immediate action can be reviewed later.,0.72,none
+msg_034,mute,greeting,Repeated forwarded social content is low-value for this user.,0.86,message_0013;message_0014;message_0077
+msg_035,digest,business_update,Similar useful messages were opened later without urgent engagement.,0.84,message_0281;message_0302;message_0273
+msg_101,digest,personal,Similar useful messages were opened later without urgent engagement.,0.77,message_0370;message_0229;message_0268
+msg_041,digest,event,Safe content with no immediate action can be reviewed later.,0.72,message_0329;message_0308;message_0287
+msg_011,mute,greeting,Repeated forwarded social content is low-value for this user.,0.86,message_0014;message_0013;message_0077
+msg_110,mute,scam,The message requests a sensitive code or account detail under suspicious pressure.,0.95,message_0238
+msg_095,mute,scam,The message tries to manipulate routing and requests sensitive verification.,0.96,message_0087;message_0183;message_0201
+msg_074,mute,scam,The message applies urgent QR-payment pressure without a safe verified flow.,0.91,message_0301;message_0203;message_0204
+msg_073,mute,forward,Repeated forwarded social content is low-value for this user.,0.86,message_0087;message_0183;message_0201
+msg_054,mute,payment,Similar messages were previously dismissed or suppressed by this user.,0.69,message_0163;message_0164;message_0389
+msg_068,digest,event,Similar useful messages were opened later without urgent engagement.,0.71,message_0191;message_0192
+msg_100,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0362;message_0228;message_0117
+msg_062,mute,forward,Repeated forwarded social content is low-value for this user.,0.86,message_0043;message_0289;message_0068
+msg_096,digest,personal,Safe content with no immediate action can be reviewed later.,0.72,none
+msg_043,mute,forward,Repeated forwarded social content is low-value for this user.,0.86,message_0067;message_0097;message_0001
+msg_077,notify,event,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0051;message_0403;message_0037
+msg_081,notify,unknown,Media extraction is uncertain; contextual history supports this conservative route.,0.68,message_0217
+msg_025,notify,business_update,A legitimate update matches the user's active transaction or booking.,0.88,message_0239;message_0004;message_0031
+msg_084,digest,business_update,Media extraction is uncertain; contextual history supports this conservative route.,0.69,none
+msg_022,notify,urgent,"A direct, time-sensitive dependency requires prompt attention.",0.88,message_0099;message_0100;message_0151

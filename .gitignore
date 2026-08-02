@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+# Submission archives are generated locally. Git hosting PRs cannot render binaries.
+*.zip
