@@ -39,3 +39,8 @@ def main()->None:
         print(f"  [{item['lower']:.1f},{item['upper']:.1f}] count={item['count']} accuracy={item['accuracy']:.3f} confidence={item['confidence']:.3f}")
 
 if __name__=="__main__": main()
+"""Compatibility entry point for the leakage-aware evaluation suite."""
+from evaluation.main import main
+
+if __name__ == "__main__":
+    main()
