@@ -5,6 +5,7 @@ import pytest
 sys.path.insert(0, str(Path("code").resolve()))
 from src.data_loader import DatasetBundle
 from src.router import Router
+from src.reasons import ReasonContext, generate_reason, validate_reason
 from src.security import assess
 
 @pytest.fixture(scope="module")
@@ -55,3 +56,26 @@ def test_media_fallbacks_and_conflicts(router):
   r=router.data.tables["messages"].iloc[0].copy(); r.update({"message_id":"x","conversation_type":"personal","group_id":"","business_id":"","sender_user_id":"u_049","message_text":"","normalized_text":"","media_type":media,"media_id":mid,"forwarded_count":"0"})
   out=router.route(r)
   assert out["action"] in {"notify","digest","mute"} and out["confidence"]<=.69
+  assert "histor" not in out["reason"].lower()
+
+@pytest.mark.parametrize("reason,field,value",[
+ ("The user opted out.","promotions_opted_out",False),
+ ("This is a verified business.","business_verified",False),
+ ("This matches an active transaction.","active_transaction",False),
+])
+def test_reason_rejects_unsupported_relationship_claims(reason,field,value):
+ context=ReasonContext("default","not_applicable",{field:value},"digest","unknown","none")
+ with pytest.raises(ValueError): validate_reason(reason,context)
+
+@pytest.mark.parametrize("reason",[
+ "A direct mention needs attention.",
+ "Historical dismissal supports this route.",
+ "Historical support suggests this route.",
+])
+def test_reason_rejects_unsupported_message_and_history_claims(reason):
+ context=ReasonContext("default","not_applicable",{},"digest","unknown","none")
+ with pytest.raises(ValueError): validate_reason(reason,context)
+
+def test_uncertain_reason_without_evidence_does_not_claim_history():
+ context=ReasonContext("history_digest","asr_unavailable",{},"digest","unknown","none",historical_action="digest")
+ assert generate_reason(context)=="Media extraction is uncertain, so the message was routed conservatively."
