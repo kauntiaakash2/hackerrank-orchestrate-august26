@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 sys.path.insert(0, str(Path("code").resolve()))
 from src.data_loader import DatasetBundle
+from src.context_features import MessageContext
 from src.router import Router
 from src.security import assess
 
@@ -56,6 +57,42 @@ def test_media_fallbacks_and_conflicts(router):
   out=router.route(r)
   assert out["action"] in {"notify","digest","mute"} and out["confidence"]<=.69
 
+def _message(router, **updates):
+ r=router.data.tables["messages"].iloc[0].copy()
+ values={"message_id":"context-test","user_id":"u_002","conversation_type":"group","group_id":"group_001","business_id":"","sender_user_id":"u_001","created_at":"2026-07-30 12:00","message_text":"Routine update","normalized_text":"routine update","media_type":"","media_id":"","forwarded_count":"0"}
+ values.update(updates); r.update(values); return r
+
+def test_quiet_hours_do_not_suppress_genuine_urgency(router):
+ r=_message(router,created_at="2026-07-30 23:30",message_text="@u_002 fire alert now, leave immediately",normalized_text="@u_002 fire alert now, leave immediately")
+ context=router.context.for_message(r)
+ assert context.in_dnd_window and router.route(r)["action"]=="notify"
+
+def test_high_fatigue_defers_low_priority_interruption(router,monkeypatch):
+ r=_message(router,conversation_type="personal",group_id="",sender_user_id="u_041",message_text="Could you review this?",normalized_text="could you review this?")
+ monkeypatch.setattr(router.context,"for_message",lambda _:MessageContext(fatigue_score=1.0,daily_summary_available=True))
+ assert router.route(r)["action"]=="digest"
+
+def test_admin_announcement_prioritized_over_member(router):
+ admin=_message(router,sender_user_id="u_001",message_text="Admin announcement: meeting schedule update",normalized_text="admin announcement: meeting schedule update")
+ member=_message(router,sender_user_id="u_003",message_text="Member announcement: meeting schedule update",normalized_text="member announcement: meeting schedule update")
+ assert router.context.for_message(admin).sender_is_admin
+ assert not router.context.for_message(member).sender_is_admin
+ assert router.route(admin)["action"]=="notify"
+ assert router.route(member)["action"]=="digest"
+
+def test_muted_group_direct_mention_retains_interruption(router):
+ r=_message(router,user_id="u_007",sender_user_id="u_001",message_text="@u_007 could you please check this?",normalized_text="@u_007 could you please check this?")
+ context=router.context.for_message(r)
+ assert context.recipient_group_muted and context.sender_is_admin
+ assert router.route(r)["action"]=="notify"
+
+def test_missing_daily_summary_is_neutral_and_safe(router):
+ r=_message(router,created_at="2030-01-01 12:00")
+ context=router.context.for_message(r)
+ assert not context.daily_summary_available
+ assert context.rolling_notification_load==0
+ assert context.recent_dismissal_ratio==0
+ assert context.fatigue_score==0
 def test_captionless_ocr_payment_pressure_reaches_security(router, monkeypatch):
  r=router.data.tables["messages"].iloc[0].copy(); r.update({"message_id":"ocr-x","conversation_type":"personal","group_id":"","business_id":"","sender_user_id":"u_049","message_text":"","normalized_text":"","media_type":"image","media_id":"poster","forwarded_count":"0"})
  monkeypatch.setattr(router.media,"extract",lambda *args:{"text":"Scan this QR and pay immediately or access will be blocked","confidence":.91,"status":"ocr_complete"})
