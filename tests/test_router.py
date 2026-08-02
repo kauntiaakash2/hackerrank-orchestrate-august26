@@ -167,6 +167,7 @@ def test_output_validator_rejects_wrong_column_order(tmp_path: Path) -> None:
     with pytest.raises(AssertionError):
         validate_output(output, router.data)
 from src.security import assess
+from src.confidence import ConfidenceCalibrator, ConfidenceSignals
 from src.retrieval import Retriever
 from src.validation import validate_output
 
@@ -219,6 +220,32 @@ def test_media_fallbacks_and_conflicts(router):
   out=router.route(r)
   assert out["action"] in {"notify","digest","mute"} and out["confidence"]<=.69
 
+def _signals(**changes):
+ values=dict(rule_strength=.65,model_probability_margin=.4,neighbor_similarity=.4,neighbor_agreement=.4,historical_evidence_quality=.4,context_completeness=.8,media_extraction_confidence=1.0,component_conflict=0.0)
+ values.update(changes); return ConfidenceSignals(**values)
+
+def test_stronger_agreeing_evidence_increases_confidence():
+ calibrator=ConfidenceCalibrator()
+ weak=calibrator.predict("notify",_signals())
+ strong=calibrator.predict("notify",_signals(rule_strength=.9,neighbor_similarity=.9,neighbor_agreement=1,historical_evidence_quality=.9))
+ assert strong>weak
+
+def test_missing_or_uncertain_media_decreases_confidence():
+ calibrator=ConfidenceCalibrator()
+ complete=calibrator.predict("digest",_signals())
+ uncertain=calibrator.predict("digest",_signals(context_completeness=.5,media_extraction_confidence=.15))
+ assert uncertain<complete
+
+def test_component_conflict_reduces_confidence():
+ calibrator=ConfidenceCalibrator()
+ agreeing=calibrator.predict("mute",_signals(neighbor_agreement=1,component_conflict=0))
+ conflicting=calibrator.predict("mute",_signals(neighbor_agreement=0,component_conflict=1))
+ assert conflicting<agreeing
+
+@pytest.mark.parametrize("action",["notify","digest","mute"])
+def test_no_confidence_branch_reaches_one(action):
+ best=_signals(rule_strength=1,model_probability_margin=1,neighbor_similarity=1,neighbor_agreement=1,historical_evidence_quality=1,context_completeness=1,media_extraction_confidence=1)
+ assert ConfidenceCalibrator().predict(action,best)<1.0
 def test_contradictory_high_similarity_history_is_rejected():
  rows=[]
  for mid,action in [("dismissed","mute"),("replied","notify")]:

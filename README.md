@@ -22,6 +22,7 @@ Python 3.10+ is supported. Runs are idempotent and use no organizer-only data or
 4. **Behavioral weak supervision:** `message_history.csv` joins one-to-one with `message_events.csv`. Reports, post-message mutes, and dismissals imply `mute`; replies within the observed fast reaction modes imply `notify`; delayed opens imply `digest`. This policy follows the dataset's discrete reaction-time distribution rather than an invented generic threshold.
 5. **Personalized retrieval:** word/bigram TF–IDF cosine similarity is augmented by same user, sender, group, and business. Evidence is ranked only after the final action and message type are known, and one to three records are returned only when their event-derived action, operational context, and semantics support that decision. Security overrides require matching risk features plus a report/mute/dismiss reaction; contradictory lookalikes are excluded.
 6. **Hierarchical ensemble:** safety, opt-out/repeated unwanted content, genuine direct urgency, active transaction updates, personalized history, semantic category rules, and conservative fallback run in that order. Quiet hours and group mute state never suppress genuine urgent direct dependencies.
+7. **Controlled and calibrated outputs:** message type has explicit precedence separate from action. Reasons are short grounded templates. `code/src/confidence.py` composes rule strength, probability margin, neighbour similarity/agreement, historical evidence quality, context completeness, media certainty, and cross-component conflict. Evaluation uses user-grouped held-out predictions to fit isotonic calibration (80+ balanced examples) or sigmoid calibration (30+ balanced examples); otherwise documented action-specific bands are used. Confidence is capped below `1.0`.
 5. **Personalized retrieval:** word/bigram TF–IDF cosine similarity is augmented by same user, sender, group, and business. One to three relevant same-user or high-similarity records are returned; IDs are validated against history.
 6. **Hierarchical ensemble:** safety, opt-out/repeated unwanted content, genuine direct urgency, active transaction updates, administrator announcements, personalized history, semantic category rules, and conservative fallback run in that order. Quiet hours, fatigue, and recipient group mute state reduce interruption probability for non-urgent content; they are not unconditional mute rules and never suppress genuine urgent direct dependencies.
 7. **Controlled outputs:** message type has explicit precedence separate from action. Reasons are short grounded templates. Confidence combines override precision, analogue quality, context completeness, and media certainty and never reaches `1.0`.
@@ -35,6 +36,19 @@ Python 3.10+ is supported. Runs are idempotent and use no organizer-only data or
 
 ## Models and ablations
 
+The implementation evaluates nearest-neighbor retrieval and the final hybrid on the solved examples (`python code/evaluate.py`). Calibration folds are grouped by user, so outcomes for a user cannot calibrate that user's held-out predictions. The report includes the calibration method, Brier score, log loss, expected calibration error, and populated reliability bins. When folds do not contain enough successes and errors for a stable fit, the explicit fallback bands are reported instead of fitting an unreliable curve. During design, deterministic rules, retrieval-only, TF–IDF text classification, metadata classification, and the hybrid were considered. The event labels are synthetic weak targets with strong template/sender leakage; therefore the shipped system favors the simpler retrieval/rule ensemble. A pure classifier would learn reaction artifacts and provides weaker safety guarantees. LLM adjudication is intentionally off by default for reproducibility, privacy, injection resistance, and offline reliability; `prompts/adjudication.json` documents the constrained contract if one is added.
+
+Qualitative ablations:
+
+| Removed component | Expected failure |
+|---|---|
+| Personalization / business history | opted-in and opted-out promotions collapse to one decision |
+| Retrieval | weaker evidence and repeated-template handling |
+| Safety | OTP, lookalike-domain, QR, injection, and medical attacks can interrupt |
+| Media | empty-caption routing loses same-media/context signal and confidence penalty |
+| Group membership | direct urgent messages in muted operational groups are mishandled |
+| Notification context | low-priority content is over-notified |
+| LLM | no runtime loss in the default system; deterministic fallback is the selected ablation |
 `python code/evaluate.py` now builds a programmatic weak-label table from the
 history/event join and executes leakage-aware grouped cross-validation. It runs
 deterministic rules, retrieval, calibrated TF-IDF logistic regression, metadata
