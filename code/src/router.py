@@ -43,6 +43,8 @@ class Router:
         elif typ=="business_update" and rel and re.search(r"delivery|pickup|ride|booking|appointment|order|transaction",text):
             action,reason,conf,decisive_rule="notify","A legitimate update matches the user's active transaction or booking.",.88,"active_transaction"
             action,reason,conf="notify","A legitimate update matches the user's active transaction or booking.",.88
+        elif best.score>=.78 and best.similarity>=.48 and best.user_id==r.user_id:
+            action=best.weak_action; conf=min(.89,.68+.16*float(best.similarity)); reason={"notify":"Similar messages previously received quick engagement from this user.","digest":"Similar useful messages were opened later without urgent engagement.","mute":"Similar messages were previously dismissed or suppressed by this user."}[action]
         elif r.conversation_type=="group" and context.sender_is_admin and re.search(r"\b(announcement|notice|reminder|schedule|meeting|class|maintenance|closure|update)\b",text):
             action,reason,conf="notify","An operational announcement comes from a group administrator.",.76
         elif r.conversation_type=="group" and self._direct_mention(text,r):
@@ -84,7 +86,7 @@ class Router:
         return f"@{r.user_id}" in t and bool(re.search(r"\?|can you|could you|please|need (your|you)",t))
 
     def _evidence(self,top:pd.DataFrame,r:pd.Series)->str:
-        good=top[(top.score>=.65)&((top.user_id==r.user_id)|(top.similarity>=.48))].head(3).message_id.tolist(); return ";".join(good) if good else "none"
+        good=top[(top.score>=.65)&(top.similarity>=.48)].head(3).message_id.tolist(); return ";".join(good) if good else "none"
 
     @staticmethod
     def _urgent(t:str,r:pd.Series,g:dict[str,str])->bool:
