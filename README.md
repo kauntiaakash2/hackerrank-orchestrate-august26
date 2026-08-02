@@ -21,13 +21,13 @@ Python 3.10+ is supported. Runs are idempotent and use no organizer-only data or
 3. **Security firewall:** sensitive-code/account requests, fake verification, QR-payment pressure, prompt injection, domain mismatch, risky unverified businesses, and unsafe medical forwards override personalization. Message, OCR, and transcript text are always untrusted.
 4. **Behavioral weak supervision:** `message_history.csv` joins one-to-one with `message_events.csv`. Reports, post-message mutes, and dismissals imply `mute`; replies within the observed fast reaction modes imply `notify`; delayed opens imply `digest`. This policy follows the dataset's discrete reaction-time distribution rather than an invented generic threshold.
 5. **Personalized retrieval:** word/bigram TF–IDF cosine similarity is augmented by same user, sender, group, and business. One to three relevant same-user or high-similarity records are returned; IDs are validated against history.
-6. **Hierarchical ensemble:** safety, opt-out/repeated unwanted content, genuine direct urgency, active transaction updates, personalized history, semantic category rules, and conservative fallback run in that order. Quiet hours and group mute state never suppress genuine urgent direct dependencies.
+6. **Hierarchical ensemble:** safety, opt-out/repeated unwanted content, genuine direct urgency, active transaction updates, administrator announcements, personalized history, semantic category rules, and conservative fallback run in that order. Quiet hours, fatigue, and recipient group mute state reduce interruption probability for non-urgent content; they are not unconditional mute rules and never suppress genuine urgent direct dependencies.
 7. **Controlled outputs:** message type has explicit precedence separate from action. Reasons are short grounded templates. Confidence combines override precision, analogue quality, context completeness, and media certainty and never reaches `1.0`.
 
 ## Context and personalization
 
-- User engagement and notification fatigue are available from user and daily summaries.
-- Group type, membership, mute status, and direct mentions distinguish operational school/work/society messages from noisy forwards.
+- User open/reply/dismiss rates come from 30-day counters. Seven-day notification load and dismissal ratio come from summaries indexed by user and date; together they form a bounded fatigue score. Recipient DND windows are evaluated against each message timestamp, with missing summary dates handled as unavailable rather than fabricated activity.
+- Recipient group mute/read/dismiss state and sender group role/admin status are resolved independently. Direct mentions and administrator announcements distinguish operational school/work/society messages from noisy forwards.
 - Business verification, official/sender-domain agreement, report load, promotion permission/opt-out, dismissals, and active relationship determine whether a legitimate promotion is digested or muted and whether an active transaction notifies.
 - Safety always wins: prior banking engagement cannot legitimize an OTP request.
 
@@ -49,7 +49,7 @@ Qualitative ablations:
 
 ## Validation
 
-The validator checks exact column order, exact input order and cardinality, unique IDs, allowed enums, numeric `[0,1]` confidence, concise nonempty reasons, no NaNs, and history-only evidence IDs. Tests cover multilingual scam text, trusted-sender OTP requests, prompt injection, QR pressure, unsafe medical forwards, muted-group direct urgency, explicit non-urgency, and missing media extraction. Output is reloaded with pandas as part of validation.
+The validator checks exact column order, exact input order and cardinality, unique IDs, allowed enums, numeric `[0,1]` confidence, concise nonempty reasons, no NaNs, and history-only evidence IDs. Tests cover multilingual scam text, trusted-sender OTP requests, prompt injection, QR pressure, unsafe medical forwards, quiet-hours urgency, fatigue deferral, admin/member announcements, muted-group direct mentions, missing daily summaries, explicit non-urgency, and missing media extraction. Output is reloaded with pandas as part of validation.
 
 ## Configuration and fallback behavior
 
