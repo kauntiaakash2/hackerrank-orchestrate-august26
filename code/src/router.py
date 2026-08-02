@@ -6,6 +6,7 @@ import pandas as pd
 from .config import OUTPUT_COLUMNS
 from .context_features import ContextFeatureLayer, MessageContext
 from .data_loader import DatasetBundle
+from .data_loader import normalize_text
 from .media_processing import MediaProcessor
 from .retrieval import Retriever
 from .security import assess
@@ -23,8 +24,11 @@ class Router:
 
     def route(self,r:pd.Series)->dict[str,object]:
         text=r.normalized_text; biz=self.businesses.get(r.business_id); rel=self.relations.get((r.user_id,r.business_id),{}); context=self.context.for_message(r); member=context.recipient_group; group=self.groups.get(r.group_id,{})
+        caption=r.normalized_text; biz=self.businesses.get(r.business_id); rel=self.relations.get((r.user_id,r.business_id),{}); member=self.members.get((r.group_id,r.user_id),{}); group=self.groups.get(r.group_id,{})
         media=self.media.extract(r.media_type,r.media_id,self.media_paths.get(r.media_id,""))
-        risk=assess(text,biz); top=self.retriever.top(r); best=top.iloc[0]; evidence=self._evidence(top,r)
+        text=normalize_text(" ".join(part for part in (caption, media.get("text", "")) if part)).lower()
+        enriched=r.copy(); enriched["normalized_text"]=text
+        risk=assess(text,biz); top=self.retriever.top(enriched); best=top.iloc[0]; evidence=self._evidence(top,r)
         typ=self._type(text,r,biz); action="digest"; reason="Safe content with no immediate action can be reviewed later."; conf=.72
         if risk.score:
             action,typ,reason,conf="mute",risk.kind,risk.reason,risk.score
@@ -48,6 +52,7 @@ class Router:
         elif r.conversation_type=="personal" and re.search(r"\?|can you|could you|please",text) and not re.search(r"no urgency|not urgent|tomorrow",text): action="notify"; typ="personal"; reason="A personal sender asks for a direct response."; conf=.78
         action,reason,conf=self._apply_interruption_context(action,reason,conf,context,self._urgent(text,r,group),self._direct_mention(text,r))
         if r.media_type and not text and media["confidence"]<.3: conf=min(conf,.69); reason="Media extraction is uncertain; contextual history supports this conservative route."
+        if r.media_type and not caption and media["confidence"]<.3: conf=min(conf,.69); reason="Media extraction is uncertain; contextual history supports this conservative route."
         return {"message_id":r.message_id,"action":action,"message_type":typ,"reason":reason,"confidence":round(min(.98,max(.5,conf)),2),"evidence_message_ids":evidence}
 
     @staticmethod

@@ -93,3 +93,13 @@ def test_missing_daily_summary_is_neutral_and_safe(router):
  assert context.rolling_notification_load==0
  assert context.recent_dismissal_ratio==0
  assert context.fatigue_score==0
+def test_captionless_ocr_payment_pressure_reaches_security(router, monkeypatch):
+ r=router.data.tables["messages"].iloc[0].copy(); r.update({"message_id":"ocr-x","conversation_type":"personal","group_id":"","business_id":"","sender_user_id":"u_049","message_text":"","normalized_text":"","media_type":"image","media_id":"poster","forwarded_count":"0"})
+ monkeypatch.setattr(router.media,"extract",lambda *args:{"text":"Scan this QR and pay immediately or access will be blocked","confidence":.91,"status":"ocr_complete"})
+ out=router.route(r)
+ assert out["action"]=="mute" and out["message_type"]=="scam"
+
+def test_caption_and_transcript_are_both_used_for_urgency(router, monkeypatch):
+ r=router.data.tables["messages"].iloc[0].copy(); r.update({"message_id":"voice-x","user_id":"u_007","conversation_type":"group","group_id":"group_001","business_id":"","sender_user_id":"u_051","message_text":"@u_007 please reply","normalized_text":"@u_007 please reply","media_type":"voice","media_id":"note","forwarded_count":"0"})
+ monkeypatch.setattr(router.media,"extract",lambda *args:{"text":"तुरंत","confidence":.84,"status":"asr_complete","language":"hi"})
+ assert router.route(r)["action"]=="notify"

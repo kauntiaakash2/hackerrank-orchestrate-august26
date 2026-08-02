@@ -17,7 +17,7 @@ Python 3.10+ is supported. Runs are idempotent and use no organizer-only data or
 ## Architecture
 
 1. **Validated loading:** all participant CSVs are loaded as strings; required schemas are checked; Unicode is NFKC-normalized and whitespace canonicalized. `--audit DATA_AUDIT.md` reports shapes, columns, empty values, event signatures, joins, and foreign-key integrity.
-2. **Multimodal layer:** images are opened and inspected with Pillow and cached by content SHA-256. Optional extraction failure is non-fatal. Voice files are likewise hashed and cached; when no ASR is installed the explicit `asr_unavailable` state lowers confidence instead of pretending a transcript exists. Captions and historical same-media records remain usable context. This deliberately reliable fallback can be extended with local OCR/ASR without changing routing.
+2. **Multimodal layer:** images use deterministic grayscale, autocontrast, and threshold OCR variants, choosing the result by OCR confidence. The structured result includes text, dates, payment terms, brand candidates, and QR presence. Voice notes use optional local multilingual `faster-whisper` with fixed greedy decoding, language detection, transcript confidence, and a timeout. Captions are joined with extracted text before safety, retrieval, urgency, and type analysis. Results are cached by content SHA-256 plus extractor version and backend availability, so installing an improved backend invalidates earlier fallback entries.
 3. **Security firewall:** sensitive-code/account requests, fake verification, QR-payment pressure, prompt injection, domain mismatch, risky unverified businesses, and unsafe medical forwards override personalization. Message, OCR, and transcript text are always untrusted.
 4. **Behavioral weak supervision:** `message_history.csv` joins one-to-one with `message_events.csv`. Reports, post-message mutes, and dismissals imply `mute`; replies within the observed fast reaction modes imply `notify`; delayed opens imply `digest`. This policy follows the dataset's discrete reaction-time distribution rather than an invented generic threshold.
 5. **Personalized retrieval:** word/bigram TF–IDF cosine similarity is augmented by same user, sender, group, and business. One to three relevant same-user or high-similarity records are returned; IDs are validated against history.
@@ -53,7 +53,15 @@ The validator checks exact column order, exact input order and cardinality, uniq
 
 ## Configuration and fallback behavior
 
-See `.env.example`. No secrets are used. Media cache paths are configurable with `--cache`; cache keys include the media digest. Missing/corrupt optional media does not crash a batch. A media-only message without available ASR/OCR receives conservative routing and reduced confidence rather than fabricated interpretation.
+See `.env.example`. No secrets are used. Media cache paths are configurable with `--cache`; cache keys include the media digest, extractor version, backend availability, and ASR model. Missing/corrupt optional media does not crash a batch. A media-only message without available ASR/OCR receives an explicit `ocr_unavailable` or `asr_unavailable` result and conservative reduced-confidence routing rather than fabricated text.
+
+### OCR installation
+
+`pytesseract` is a Python adapter and still requires the Tesseract executable. Install it with your OS package manager (for example, `apt install tesseract-ocr` on Debian/Ubuntu or `brew install tesseract` on macOS), then install this project's requirements. Add the language packs named by `ROUTER_OCR_LANGUAGES` (Tesseract syntax such as `eng+hin`). If the executable is not on `PATH`, set `TESSERACT_CMD` to its absolute path. QR decoding uses the installed headless OpenCV package; QR absence and decoder unavailability are both safe, non-fatal states.
+
+### Local multilingual speech-to-text
+
+ASR is intentionally optional because Whisper models are comparatively large. Install it with `python -m pip install 'faster-whisper>=1.0,<2'`, make the configured `ROUTER_WHISPER_MODEL` available locally, and choose CPU/GPU and compute settings in `.env.example`. Decoding is fixed to one greedy beam, temperature zero, disabled prior-text conditioning, and no VAD for repeatability. `ROUTER_ASR_TIMEOUT` bounds how long routing waits. Without the package/model—or after a timeout—the router records a declared fallback and continues; it never substitutes a guessed transcript. Model loading itself can require a first-run download, so pre-download models for offline evaluation.
 
 ## Files and packaging
 
@@ -65,4 +73,4 @@ python -m zipfile -c code.zip main.py code requirements.txt .env.example README.
 
 ## Known limitations
 
-The base dependency set does not ship a heavyweight multilingual speech model or system OCR binary. Images are inspected structurally and benefit from their captions/same-media analogues, while unavailable voice transcription is declared and confidence-discounted. Installing a local ASR/OCR adapter would improve novel, captionless media. Weak labels represent observed behavior rather than authoritative notification labels, so safety and operational urgency rules intentionally override them.
+The base dependency set does not ship a heavyweight multilingual speech model or the system Tesseract binary/language data. OCR quality depends on source resolution and installed language packs; brand extraction intentionally returns deterministic candidates rather than claiming entity resolution. Voice transcription quality depends on the locally selected Whisper model. Weak labels represent observed behavior rather than authoritative notification labels, so safety and operational urgency rules intentionally override them.

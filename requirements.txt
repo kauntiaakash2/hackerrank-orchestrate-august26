@@ -1,4 +1,9 @@
 pandas>=2.0,<3
 scikit-learn>=1.3,<2
 Pillow>=10,<12
+pytesseract>=0.3.10,<0.4
+opencv-python-headless>=4.8,<5
 pytest>=8,<9
+
+# Optional multilingual local ASR (large model downloads are not installed by default):
+# faster-whisper>=1.0,<2
