@@ -79,11 +79,47 @@ ASR is intentionally optional because Whisper models are comparatively large. In
 
 ## Files and packaging
 
-`main.py` is the root entry point; implementation lives in `code/src/`; tests in `tests/`; the deterministic cache in `cache/`; predictions in `dataset/output.csv`; audit in `DATA_AUDIT.md`; and the conversation log is copied to `chat_transcript`. Create the submission archive locally with the following command. `code.zip` is intentionally ignored by Git because pull-request diff viewers do not support binary archives; the archive is a submission artifact, not source code.
+`main.py` is the root entry point; implementation lives in `code/src/`; tests in `tests/`; the intended deterministic cache artifacts are in `cache/`; predictions are in `dataset/output.csv`; audit and evaluation documentation are in `DATA_AUDIT.md` and `EVALUATION.md`; and the conversation log is copied to `chat_transcript`.
+
+Build the source archive on Windows, macOS, or Linux with:
 
 ```bash
-python -m zipfile -c code.zip main.py code requirements.txt .env.example README.md prompts cache tests DATA_AUDIT.md
+python tools/package_submission.py
 ```
+
+The script writes `code.zip` with stable path ordering, timestamps, permissions,
+and compression settings. It includes the runnable source, requirements,
+`.env.example`, prompts, intended JSON cache artifacts, tests, README, data audit,
+and evaluation documentation. `MANIFEST.sha256` records every payload path and
+SHA-256 hash. Symlinks, secrets (`.env` and other environment variants), test
+caches, bytecode, `.pytest_cache`, and ZIP files (including the archive itself)
+are excluded. `code.zip` remains ignored by Git because it is a binary submission
+artifact.
+
+To verify reproducibility and the complete workflow in a clean temporary
+directory, build twice, compare the hashes, extract one archive, copy in the
+participant dataset (which is deliberately submitted separately), then run the
+documented install, routing, validation, tests, and evaluation commands:
+
+```bash
+python tools/package_submission.py --output code.zip
+python tools/package_submission.py --output code-second.zip
+python -c "import hashlib; from pathlib import Path; a=hashlib.sha256(Path('code.zip').read_bytes()).hexdigest(); b=hashlib.sha256(Path('code-second.zip').read_bytes()).hexdigest(); print(a); print(b); assert a == b"
+python -m zipfile -e code.zip clean-package
+```
+
+From `clean-package`, after copying `dataset/` into that directory:
+
+```bash
+python -m pip install -r requirements.txt
+python main.py --dataset-dir dataset --output dataset/output.csv
+python main.py --dataset-dir dataset --output dataset/output.csv --validate-only
+pytest -q
+python code/evaluate.py
+```
+
+Upload the ignored `code.zip` separately alongside `dataset/output.csv` and
+`chat_transcript`; do not add the archive to Git.
 
 ## Known limitations
 
