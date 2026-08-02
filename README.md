@@ -1,130 +1,68 @@
-# HackerRank Orchestrate
+# Personalized Multimodal Notification Router
 
-Starter repository for the **HackerRank Orchestrate** 24-hour hackathon.
+A deterministic, CPU-friendly hybrid router for the HackerRank Orchestrate challenge. It combines a high-precision safety firewall, behavioral weak supervision, personalized TF–IDF retrieval, structured user/group/business context, explicit semantic precedence, and calibrated decision templates. It does **not** require an API key and never treats message content as instructions.
 
-## Message Notification Router
+## Quick start
 
-Build an AI-powered system for WhatsApp that decides which messages deserve immediate attention, which should wait, and which should be muted.
-
-The system must reason over multimodal messages, including text messages, image posters/screenshots, and voice notes.
-
-WhatsApp is noisy. A user can receive family chats, society notices, school updates, co-worker messages, business account promotions, image posters, voice notes, and scams in the same message stream. Treating every message the same creates two bad outcomes: important messages get missed, and unwanted or risky messages interrupt the user.
-
-Read [`problem_statement.md`](./problem_statement.md) for the full task spec, input/output schema, allowed values, and submission format.
-
----
-
-## Repository Layout
-
-```text
-.
-├── AGENTS.md                         # Rules for AI coding tools + transcript logging
-├── problem_statement.md              # Full challenge statement
-├── README.md                         # You are here
-└── dataset/
-    ├── messages.csv                  # Messages to route
-    ├── output.csv                    # Blank submission template
-    ├── sample_messages.csv           # Solved examples
-    ├── users.csv                     # User notification behavior
-    ├── groups.csv                    # Group metadata
-    ├── group_members.csv             # User-group relationships
-    ├── business_accounts.csv         # Business sender metadata
-    ├── user_business_history.csv     # User-business history
-    ├── message_history.csv           # Historical messages
-    ├── message_events.csv            # User reactions to historical messages
-    ├── images.csv                    # Image IDs and media file paths
-    ├── voice_notes.csv               # Voice note IDs and media file paths
-    ├── daily_notification_summary.csv
-    └── media/
-        ├── images/
-        └── audio/
+```bash
+python -m pip install -r requirements.txt
+python main.py --dataset-dir dataset --output dataset/output.csv
+python main.py --dataset-dir dataset --output dataset/output.csv --validate-only
+pytest -q
+python code/evaluate.py
 ```
 
----
+Python 3.10+ is supported. Runs are idempotent and use no organizer-only data or incoming ID/order features.
 
-## What You Need to Build
+## Architecture
 
-For every row in `dataset/messages.csv`, produce one row in `output.csv` with:
+1. **Validated loading:** all participant CSVs are loaded as strings; required schemas are checked; Unicode is NFKC-normalized and whitespace canonicalized. `--audit DATA_AUDIT.md` reports shapes, columns, empty values, event signatures, joins, and foreign-key integrity.
+2. **Multimodal layer:** images are opened and inspected with Pillow and cached by content SHA-256. Optional extraction failure is non-fatal. Voice files are likewise hashed and cached; when no ASR is installed the explicit `asr_unavailable` state lowers confidence instead of pretending a transcript exists. Captions and historical same-media records remain usable context. This deliberately reliable fallback can be extended with local OCR/ASR without changing routing.
+3. **Security firewall:** sensitive-code/account requests, fake verification, QR-payment pressure, prompt injection, domain mismatch, risky unverified businesses, and unsafe medical forwards override personalization. Message, OCR, and transcript text are always untrusted.
+4. **Behavioral weak supervision:** `message_history.csv` joins one-to-one with `message_events.csv`. Reports, post-message mutes, and dismissals imply `mute`; replies within the observed fast reaction modes imply `notify`; delayed opens imply `digest`. This policy follows the dataset's discrete reaction-time distribution rather than an invented generic threshold.
+5. **Personalized retrieval:** word/bigram TF–IDF cosine similarity is augmented by same user, sender, group, and business. One to three relevant same-user or high-similarity records are returned; IDs are validated against history.
+6. **Hierarchical ensemble:** safety, opt-out/repeated unwanted content, genuine direct urgency, active transaction updates, personalized history, semantic category rules, and conservative fallback run in that order. Quiet hours and group mute state never suppress genuine urgent direct dependencies.
+7. **Controlled outputs:** message type has explicit precedence separate from action. Reasons are short grounded templates. Confidence combines override precision, analogue quality, context completeness, and media certainty and never reaches `1.0`.
 
-| Column | Meaning |
+## Context and personalization
+
+- User engagement and notification fatigue are available from user and daily summaries.
+- Group type, membership, mute status, and direct mentions distinguish operational school/work/society messages from noisy forwards.
+- Business verification, official/sender-domain agreement, report load, promotion permission/opt-out, dismissals, and active relationship determine whether a legitimate promotion is digested or muted and whether an active transaction notifies.
+- Safety always wins: prior banking engagement cannot legitimize an OTP request.
+
+## Models and ablations
+
+The implementation evaluates nearest-neighbor retrieval and the final hybrid on the solved examples (`python code/evaluate.py`). During design, deterministic rules, retrieval-only, TF–IDF text classification, metadata classification, and the hybrid were considered. The event labels are synthetic weak targets with strong template/sender leakage, and the solved set is too small for credible user/template-grouped calibration of a complex booster; therefore the shipped system favors the simpler retrieval/rule ensemble. A pure classifier would learn reaction artifacts and provides weaker safety guarantees. LLM adjudication is intentionally off by default for reproducibility, privacy, injection resistance, and offline reliability; `prompts/adjudication.json` documents the constrained contract if one is added.
+
+Qualitative ablations:
+
+| Removed component | Expected failure |
 |---|---|
-| `message_id` | Incoming message ID |
-| `action` | One of `notify`, `digest`, or `mute` |
-| `message_type` | Best-fit message category |
-| `reason` | Short human-readable explanation |
-| `confidence` | Number from `0` to `1` |
-| `evidence_message_ids` | Historical message IDs used as evidence; write `none` if there is no useful evidence |
+| Personalization / business history | opted-in and opted-out promotions collapse to one decision |
+| Retrieval | weaker evidence and repeated-template handling |
+| Safety | OTP, lookalike-domain, QR, injection, and medical attacks can interrupt |
+| Media | empty-caption routing loses same-media/context signal and confidence penalty |
+| Group membership | direct urgent messages in muted operational groups are mishandled |
+| Notification context | low-priority content is over-notified |
+| LLM | no runtime loss in the default system; deterministic fallback is the selected ablation |
 
-Your system should make personalized decisions using the provided message, user, group, business, media, and historical interaction data.
-For image and voice-note messages, `images.csv` and `voice_notes.csv` only provide file paths; your system should inspect the media files themselves.
+## Validation
 
----
+The validator checks exact column order, exact input order and cardinality, unique IDs, allowed enums, numeric `[0,1]` confidence, concise nonempty reasons, no NaNs, and history-only evidence IDs. Tests cover multilingual scam text, trusted-sender OTP requests, prompt injection, QR pressure, unsafe medical forwards, muted-group direct urgency, explicit non-urgency, and missing media extraction. Output is reloaded with pandas as part of validation.
 
-## Suggested Workflow
+## Configuration and fallback behavior
 
-1. Inspect `dataset/sample_messages.csv` to understand the expected output format.
-2. Load `dataset/messages.csv` and all relevant context files.
-3. Build your routing system using any approach: LLMs, retrieval, rules, classifiers, agents, or hybrids.
-4. Write predictions to `output.csv`.
-5. Evaluate your approach on the solved sample rows before submitting.
+See `.env.example`. No secrets are used. Media cache paths are configurable with `--cache`; cache keys include the media digest. Missing/corrupt optional media does not crash a batch. A media-only message without available ASR/OCR receives conservative routing and reduced confidence rather than fabricated interpretation.
 
-You may use any language or runtime. Python, JavaScript, and TypeScript are all reasonable choices.
+## Files and packaging
 
----
+`main.py` is the root entry point; implementation lives in `code/src/`; tests in `tests/`; the deterministic cache in `cache/`; predictions in `dataset/output.csv`; audit in `DATA_AUDIT.md`; and the conversation log is copied to `chat_transcript`. Create the submission archive locally with the following command. `code.zip` is intentionally ignored by Git because pull-request diff viewers do not support binary archives; the archive is a submission artifact, not source code.
 
-## Requirements
+```bash
+python -m zipfile -c code.zip main.py code requirements.txt .env.example README.md prompts cache tests DATA_AUDIT.md
+```
 
-Your solution must:
+## Known limitations
 
-- be runnable from the terminal
-- read the provided files from `dataset/`
-- produce a valid `output.csv`
-- include one prediction for every `message_id` in `dataset/messages.csv`
-- not use organizer-only files or hardcoded labels
-
-If you use API keys or secrets, read them from environment variables. Never hardcode secrets in the repo.
-
----
-
-## Evaluation
-
-Your `output.csv` will be compared against hidden ground-truth labels.
-
-The scoring will consider:
-
-- correctness of `action`
-- correctness of `message_type`
-- usefulness and consistency of `reason`
-- whether `evidence_message_ids` point to relevant historical messages
-- reasonable confidence calibration
-
-Strong systems will combine retrieval, structured metadata, behavioral history, safety checks, OCR/ASR handling, and contextual reasoning.
-
----
-
-## Chat Transcript Logging
-
-This repo includes an [`AGENTS.md`](./AGENTS.md) file for AI coding tools. It asks compatible tools to append conversation summaries to:
-
-| Platform | Path |
-|---|---|
-| macOS / Linux | `$HOME/hackerrank_orchestrate_august26/log.txt` |
-| Windows | `%USERPROFILE%\hackerrank_orchestrate_august26\log.txt` |
-
-Upload this log as your chat transcript at submission time. Do not paste secrets into the chat.
-
----
-
-## Submission
-
-Submit the following files as instructed by HackerRank:
-
-1. **Code zip**: full runnable solution, prompts/configs, README, and any evaluation files.
-2. **Predictions CSV**: final `output.csv` for all rows in `dataset/messages.csv`.
-3. **Chat transcript**: the `log.txt` described above.
-
-Before submitting, confirm:
-
-- `output.csv` has one row per row in `dataset/messages.csv`.
-- `output.csv` has the exact required columns in the exact required order.
-- Your runnable code and setup instructions are included in `code.zip`.
+The base dependency set does not ship a heavyweight multilingual speech model or system OCR binary. Images are inspected structurally and benefit from their captions/same-media analogues, while unavailable voice transcription is declared and confidence-discounted. Installing a local ASR/OCR adapter would improve novel, captionless media. Weak labels represent observed behavior rather than authoritative notification labels, so safety and operational urgency rules intentionally override them.

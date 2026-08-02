@@ -1,0 +1,14 @@
+{
+  "missing_image:missing": {
+    "confidence": 0.2,
+    "sha256": "missing",
+    "status": "fallback",
+    "text": ""
+  },
+  "missing_voice:missing": {
+    "confidence": 0.15,
+    "sha256": "missing",
+    "status": "asr_unavailable",
+    "text": ""
+  }
+}
