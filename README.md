@@ -33,19 +33,16 @@ Python 3.10+ is supported. Runs are idempotent and use no organizer-only data or
 
 ## Models and ablations
 
-The implementation evaluates nearest-neighbor retrieval and the final hybrid on the solved examples (`python code/evaluate.py`). During design, deterministic rules, retrieval-only, TF–IDF text classification, metadata classification, and the hybrid were considered. The event labels are synthetic weak targets with strong template/sender leakage, and the solved set is too small for credible user/template-grouped calibration of a complex booster; therefore the shipped system favors the simpler retrieval/rule ensemble. A pure classifier would learn reaction artifacts and provides weaker safety guarantees. LLM adjudication is intentionally off by default for reproducibility, privacy, injection resistance, and offline reliability; `prompts/adjudication.json` documents the constrained contract if one is added.
-
-Qualitative ablations:
-
-| Removed component | Expected failure |
-|---|---|
-| Personalization / business history | opted-in and opted-out promotions collapse to one decision |
-| Retrieval | weaker evidence and repeated-template handling |
-| Safety | OTP, lookalike-domain, QR, injection, and medical attacks can interrupt |
-| Media | empty-caption routing loses same-media/context signal and confidence penalty |
-| Group membership | direct urgent messages in muted operational groups are mishandled |
-| Notification context | low-priority content is over-notified |
-| LLM | no runtime loss in the default system; deterministic fallback is the selected ablation |
+`python code/evaluate.py` now builds a programmatic weak-label table from the
+history/event join and executes leakage-aware grouped cross-validation. It runs
+deterministic rules, retrieval, calibrated TF-IDF logistic regression, metadata
+logistic regression, histogram gradient boosting, model-only, and final-hybrid
+baselines. Personalization, retrieval, safety, media, user-business history,
+group context, and notification-load removals are executable variants rather
+than qualitative claims. Results, probability metrics, per-class confusion
+matrices, and solved-example message-type accuracy are persisted in
+`evaluation/results.json`; see `EVALUATION.md` for details. Embedding and LLM
+variants are explicitly recorded as unavailable when their runtime is absent.
 
 ## Validation
 

@@ -1,0 +1,829 @@
+{
+  "schema_version": 1,
+  "weak_label_rows": 412,
+  "weak_label_distribution": {
+    "notify": 153,
+    "mute": 134,
+    "digest": 125
+  },
+  "models": [
+    {
+      "name": "deterministic_rules",
+      "mode": "rules",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.39563106796116504,
+      "macro_f1": 0.4015356556306635,
+      "log_loss": 1.6297745381168645,
+      "brier_score": 0.9705218446601942,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            69,
+            24,
+            32
+          ],
+          [
+            43,
+            55,
+            36
+          ],
+          [
+            110,
+            4,
+            39
+          ]
+        ]
+      }
+    },
+    {
+      "name": "retrieval",
+      "mode": "retrieval",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.7766990291262136,
+      "macro_f1": 0.768401692869778,
+      "log_loss": 0.6219391135392498,
+      "brier_score": 0.34090099111320254,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            78,
+            21,
+            26
+          ],
+          [
+            16,
+            107,
+            11
+          ],
+          [
+            16,
+            2,
+            135
+          ]
+        ]
+      }
+    },
+    {
+      "name": "tfidf_calibrated_logistic",
+      "mode": "text",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.75,
+      "macro_f1": 0.7385770967042703,
+      "log_loss": 0.6951608391938423,
+      "brier_score": 0.39641236527678325,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            69,
+            29,
+            27
+          ],
+          [
+            13,
+            114,
+            7
+          ],
+          [
+            19,
+            8,
+            126
+          ]
+        ]
+      }
+    },
+    {
+      "name": "metadata_classifier",
+      "mode": "metadata",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.7669902912621359,
+      "macro_f1": 0.7649393117234076,
+      "log_loss": 0.6098821383697068,
+      "brier_score": 0.34972710345709745,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            88,
+            15,
+            22
+          ],
+          [
+            16,
+            106,
+            12
+          ],
+          [
+            25,
+            6,
+            122
+          ]
+        ]
+      }
+    },
+    {
+      "name": "gradient_boosted_tabular",
+      "mode": "boosted",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.7233009708737864,
+      "macro_f1": 0.7200969335968678,
+      "log_loss": 0.6715332300673231,
+      "brier_score": 0.3811718292581142,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            75,
+            14,
+            36
+          ],
+          [
+            11,
+            109,
+            14
+          ],
+          [
+            28,
+            11,
+            114
+          ]
+        ]
+      }
+    },
+    {
+      "name": "rules_only",
+      "mode": "rules",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.39563106796116504,
+      "macro_f1": 0.4015356556306635,
+      "log_loss": 1.6297745381168645,
+      "brier_score": 0.9705218446601942,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            69,
+            24,
+            32
+          ],
+          [
+            43,
+            55,
+            36
+          ],
+          [
+            110,
+            4,
+            39
+          ]
+        ]
+      }
+    },
+    {
+      "name": "model_only",
+      "mode": "model",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.7572815533980582,
+      "macro_f1": 0.7477395633609417,
+      "log_loss": 0.6165237154934388,
+      "brier_score": 0.3377679540737334,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            72,
+            30,
+            23
+          ],
+          [
+            7,
+            120,
+            7
+          ],
+          [
+            28,
+            5,
+            120
+          ]
+        ]
+      }
+    },
+    {
+      "name": "final_hybrid",
+      "mode": "hybrid",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.7257281553398058,
+      "macro_f1": 0.7214005204480416,
+      "log_loss": 0.7408470340315991,
+      "brier_score": 0.43223754720536495,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            73,
+            24,
+            28
+          ],
+          [
+            18,
+            111,
+            5
+          ],
+          [
+            38,
+            0,
+            115
+          ]
+        ]
+      }
+    },
+    {
+      "name": "without_personalization",
+      "mode": "hybrid",
+      "switches": {
+        "personalization": false,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.7427184466019418,
+      "macro_f1": 0.7365520934596711,
+      "log_loss": 0.736539277527015,
+      "brier_score": 0.42877476853342306,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            73,
+            24,
+            28
+          ],
+          [
+            15,
+            114,
+            5
+          ],
+          [
+            34,
+            0,
+            119
+          ]
+        ]
+      }
+    },
+    {
+      "name": "without_retrieval",
+      "mode": "hybrid",
+      "switches": {
+        "personalization": true,
+        "retrieval": false,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.5436893203883495,
+      "macro_f1": 0.5516134995199253,
+      "log_loss": 0.8769936045101463,
+      "brier_score": 0.5166278581552312,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            72,
+            23,
+            30
+          ],
+          [
+            32,
+            81,
+            21
+          ],
+          [
+            78,
+            4,
+            71
+          ]
+        ]
+      }
+    },
+    {
+      "name": "without_safety",
+      "mode": "hybrid",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": false,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.7184466019417476,
+      "macro_f1": 0.7204017339867167,
+      "log_loss": 0.6870214995938996,
+      "brier_score": 0.4132397729500085,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            85,
+            12,
+            28
+          ],
+          [
+            29,
+            96,
+            9
+          ],
+          [
+            38,
+            0,
+            115
+          ]
+        ]
+      }
+    },
+    {
+      "name": "without_media",
+      "mode": "hybrid",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": false,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.7257281553398058,
+      "macro_f1": 0.7214005204480416,
+      "log_loss": 0.7408470340315991,
+      "brier_score": 0.43223754720536495,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            73,
+            24,
+            28
+          ],
+          [
+            18,
+            111,
+            5
+          ],
+          [
+            38,
+            0,
+            115
+          ]
+        ]
+      }
+    },
+    {
+      "name": "without_user_business_history",
+      "mode": "hybrid",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": false,
+        "group_context": true,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.7087378640776699,
+      "macro_f1": 0.7065794128050937,
+      "log_loss": 0.761367004978195,
+      "brier_score": 0.4449790020124271,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            74,
+            20,
+            31
+          ],
+          [
+            22,
+            103,
+            9
+          ],
+          [
+            38,
+            0,
+            115
+          ]
+        ]
+      }
+    },
+    {
+      "name": "without_group_context",
+      "mode": "hybrid",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": false,
+        "notification_load": true
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.7014563106796117,
+      "macro_f1": 0.6978962813548376,
+      "log_loss": 0.7677796395050559,
+      "brier_score": 0.4510613456440738,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            73,
+            24,
+            28
+          ],
+          [
+            19,
+            102,
+            13
+          ],
+          [
+            37,
+            2,
+            114
+          ]
+        ]
+      }
+    },
+    {
+      "name": "without_notification_load",
+      "mode": "hybrid",
+      "switches": {
+        "personalization": true,
+        "retrieval": true,
+        "safety": true,
+        "media": true,
+        "user_business_history": true,
+        "group_context": true,
+        "notification_load": false
+      },
+      "folds": 5,
+      "leakage_groups": 354,
+      "action_accuracy": 0.7233009708737864,
+      "macro_f1": 0.7184939961844911,
+      "log_loss": 0.7386665268556738,
+      "brier_score": 0.430405371510543,
+      "confusion_matrix": {
+        "labels": [
+          "digest",
+          "mute",
+          "notify"
+        ],
+        "rows_true_columns_predicted": [
+          [
+            72,
+            24,
+            29
+          ],
+          [
+            18,
+            110,
+            6
+          ],
+          [
+            37,
+            0,
+            116
+          ]
+        ]
+      }
+    }
+  ],
+  "solved_examples": {
+    "action_accuracy": 0.9,
+    "macro_f1": 0.901940842444275,
+    "log_loss": 0.4310877054821932,
+    "brier_score": 0.19999999999999993,
+    "confusion_matrix": {
+      "labels": [
+        "digest",
+        "mute",
+        "notify"
+      ],
+      "rows_true_columns_predicted": [
+        [
+          10,
+          0,
+          1
+        ],
+        [
+          1,
+          9,
+          0
+        ],
+        [
+          1,
+          0,
+          8
+        ]
+      ]
+    },
+    "examples": 30,
+    "message_type_examples": 30,
+    "message_type_accuracy": 0.8666666666666667,
+    "message_type_confusion_matrix": {
+      "labels": [
+        "business_update",
+        "event",
+        "forward",
+        "greeting",
+        "personal",
+        "promotion",
+        "scam",
+        "spam",
+        "unknown",
+        "urgent"
+      ],
+      "rows_true_columns_predicted": [
+        [
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          4,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          6,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          4,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          3
+        ]
+      ]
+    }
+  },
+  "unavailable_variants": {
+    "embedding": "unavailable: no embedding model dependency or weights are installed",
+    "llm": "unavailable: no LLM runtime/API is configured; evaluation remains offline and deterministic"
+  }
+}

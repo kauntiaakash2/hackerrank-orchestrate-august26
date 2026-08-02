@@ -58,9 +58,14 @@ class Router:
     def _type(t:str,r:pd.Series,b:dict[str,str]|None)->str:
         if re.search(r"good morning|good night|bless|wishes|happy birthday",t): return "greeting"
         if int(r.forwarded_count or 0)>=4 or re.search(r"forward(ed)? as received|share with (ten|all)|send this to",t): return "forward"
-        if re.search(r"sale|offer|discount|cashback|coupon|promo|% off|selling|for sale|deal|token today",t): return "promotion"
-        if re.search(r"fee|invoice|bill|payment (due|reminder)|maintenance.*pay|premium due",t): return "payment"
-        if re.search(r"meeting|class|school|trip|appointment|booking|invite|rsvp|timing|schedule|deadline|portal|bus|event|match",t): return "event"
+        # Promotions precede event/business keywords: travel offers and attached
+        # marketplace photos otherwise look like trips or pickup updates.
+        if re.search(r"\b(sale|offer|discount|cashback|coupon|promo|selling|for sale|deal)\b|% off|reply stop|unsubscribe|rs\.?\s*[\d,]+.*per person|photos? for the .*set",t): return "promotion"
+        if re.search(r"\b(fee|invoice|bill)\b|payment (due|reminder)|maintenance.*pay|premium due",t): return "payment"
+        # Explicitly low-pressure conversational plans remain personal.
+        if re.search(r"found your (number|contact)|got your number from",t): return "unknown"
+        if r.conversation_type=="personal" or re.search(r"nothing dramatic|no pressure at all|just checking",t): return "personal"
+        if re.search(r"\b(eod|end of day|last-minute)\b",t) and re.search(r"\bneed\b|can you|before",t): return "urgent"
+        if re.search(r"meeting|class|school|trip|appointment|booking|invite|rsvp|timing|schedule|deadline|portal|bus|event|match|form is open|cultural night",t): return "event"
         if r.conversation_type=="business" or re.search(r"delivery|pickup|refund|statement|ride update|account update|order",t): return "business_update"
-        if r.conversation_type=="personal": return "personal"
         return "unknown"
