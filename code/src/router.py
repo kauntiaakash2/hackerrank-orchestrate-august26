@@ -34,7 +34,7 @@ class Router:
             action,typ,reason,conf="notify",("event" if typ=="event" else "urgent"),"A direct, time-sensitive dependency requires prompt attention.",.88
         elif typ=="business_update" and rel and re.search(r"delivery|pickup|ride|booking|appointment|order|transaction",text):
             action,reason,conf="notify","A legitimate update matches the user's active transaction or booking.",.88
-        elif best.score>=.78 and best.user_id==r.user_id:
+        elif best.score>=.78 and best.similarity>=.48 and best.user_id==r.user_id:
             action=best.weak_action; conf=min(.89,.68+.16*float(best.similarity)); reason={"notify":"Similar messages previously received quick engagement from this user.","digest":"Similar useful messages were opened later without urgent engagement.","mute":"Similar messages were previously dismissed or suppressed by this user."}[action]
         elif typ=="promotion":
             action="digest" if rel.get("allows_promotions")=="1" or not rel else "mute"; reason="The legitimate offer can be reviewed later." if action=="digest" else "Low-priority marketing does not match the user's preferences."; conf=.79
@@ -44,7 +44,7 @@ class Router:
         return {"message_id":r.message_id,"action":action,"message_type":typ,"reason":reason,"confidence":round(min(.98,max(.5,conf)),2),"evidence_message_ids":evidence}
 
     def _evidence(self,top:pd.DataFrame,r:pd.Series)->str:
-        good=top[(top.score>=.65)&((top.user_id==r.user_id)|(top.similarity>=.48))].head(3).message_id.tolist(); return ";".join(good) if good else "none"
+        good=top[(top.score>=.65)&(top.similarity>=.48)].head(3).message_id.tolist(); return ";".join(good) if good else "none"
 
     @staticmethod
     def _urgent(t:str,r:pd.Series,g:dict[str,str])->bool:
