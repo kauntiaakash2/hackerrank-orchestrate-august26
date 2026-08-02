@@ -4,22 +4,26 @@ import re
 from pathlib import Path
 import pandas as pd
 from .config import OUTPUT_COLUMNS
+from .confidence import ConfidenceCalibrator, ConfidenceSignals
 from .data_loader import DatasetBundle
 from .media_processing import MediaProcessor
 from .retrieval import Retriever
 from .security import assess
 
 class Router:
-    def __init__(self,data:DatasetBundle,cache:Path):
+    def __init__(self,data:DatasetBundle,cache:Path,calibrator:ConfidenceCalibrator|None=None):
         self.data=data; t=data.tables; self.retriever=Retriever(data.history_events); self.media=MediaProcessor(data.root,cache)
         self.users=t["users"].set_index("user_id").to_dict("index"); self.groups=t["groups"].set_index("group_id").to_dict("index")
         self.members=t["group_members"].set_index(["group_id","user_id"]).to_dict("index"); self.businesses=t["business_accounts"].set_index("business_id").to_dict("index")
         self.relations=t["user_business_history"].set_index(["user_id","business_id"]).to_dict("index")
         self.media_paths={**t["images"].set_index("image_id").file_path.to_dict(),**t["voice_notes"].set_index("voice_note_id").file_path.to_dict()}
+        self.calibrator=calibrator or ConfidenceCalibrator()
 
     def route_all(self)->pd.DataFrame: return pd.DataFrame([self.route(r) for _,r in self.data.tables["messages"].iterrows()],columns=OUTPUT_COLUMNS)
 
-    def route(self,r:pd.Series)->dict[str,object]:
+    def route(self,r:pd.Series)->dict[str,object]: return self.route_detailed(r)[0]
+
+    def route_detailed(self,r:pd.Series)->tuple[dict[str,object],ConfidenceSignals]:
         text=r.normalized_text; biz=self.businesses.get(r.business_id); rel=self.relations.get((r.user_id,r.business_id),{}); member=self.members.get((r.group_id,r.user_id),{}); group=self.groups.get(r.group_id,{})
         media=self.media.extract(r.media_type,r.media_id,self.media_paths.get(r.media_id,""))
         risk=assess(text,biz); top=self.retriever.top(r); best=top.iloc[0]; evidence=self._evidence(top,r)
@@ -41,7 +45,24 @@ class Router:
         elif typ in {"spam","scam"}: action="mute"; reason="Suspicious or unwanted content should be suppressed."; conf=.84
         elif r.conversation_type=="personal" and re.search(r"\?|can you|could you|please",text) and not re.search(r"no urgency|not urgent|tomorrow",text): action="notify"; typ="personal"; reason="A personal sender asks for a direct response."; conf=.78
         if r.media_type and not text and media["confidence"]<.3: conf=min(conf,.69); reason="Media extraction is uncertain; contextual history supports this conservative route."
-        return {"message_id":r.message_id,"action":action,"message_type":typ,"reason":reason,"confidence":round(min(.98,max(.5,conf)),2),"evidence_message_ids":evidence}
+        similarity=float(best.similarity)
+        agreement=float(best.weak_action==action)
+        same_user=float(best.user_id==r.user_id)
+        available=[bool(r.user_id),bool(r.sender_user_id or r.group_id or r.business_id),bool(text or r.media_id)]
+        media_confidence=float(media["confidence"]) if r.media_type else 1.0
+        signals=ConfidenceSignals(
+            rule_strength=conf,
+            model_probability_margin=min(1.0,abs(conf-.5)*2),
+            neighbor_similarity=similarity,
+            neighbor_agreement=agreement,
+            historical_evidence_quality=min(1.0,.55*same_user+.45*similarity) if evidence!="none" else 0.0,
+            context_completeness=sum(available)/len(available),
+            media_extraction_confidence=media_confidence,
+            component_conflict=(1-agreement)*similarity,
+        )
+        calibrated=self.calibrator.predict(action,signals)
+        output={"message_id":r.message_id,"action":action,"message_type":typ,"reason":reason,"confidence":round(calibrated,2),"evidence_message_ids":evidence}
+        return output,signals
 
     def _evidence(self,top:pd.DataFrame,r:pd.Series)->str:
         good=top[(top.score>=.65)&((top.user_id==r.user_id)|(top.similarity>=.48))].head(3).message_id.tolist(); return ";".join(good) if good else "none"
