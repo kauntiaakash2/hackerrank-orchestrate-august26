@@ -22,29 +22,27 @@ class Router:
     def route(self,r:pd.Series)->dict[str,object]:
         text=r.normalized_text; biz=self.businesses.get(r.business_id); rel=self.relations.get((r.user_id,r.business_id),{}); member=self.members.get((r.group_id,r.user_id),{}); group=self.groups.get(r.group_id,{})
         media=self.media.extract(r.media_type,r.media_id,self.media_paths.get(r.media_id,""))
-        risk=assess(text,biz); top=self.retriever.top(r); best=top.iloc[0]; evidence=self._evidence(top,r)
-        typ=self._type(text,r,biz); action="digest"; reason="Safe content with no immediate action can be reviewed later."; conf=.72
+        risk=assess(text,biz); top=self.retriever.top(r); best=top.iloc[0]
+        typ=self._type(text,r,biz); action="digest"; reason="Safe content with no immediate action can be reviewed later."; conf=.72; decisive_rule="fallback"
         if risk.score:
-            action,typ,reason,conf="mute",risk.kind,risk.reason,risk.score
+            action,typ,reason,conf,decisive_rule="mute",risk.kind,risk.reason,risk.score,"security"
         elif typ=="promotion" and (rel.get("promotions_opted_out_at") or rel.get("allows_promotions")=="0" and int(rel.get("messages_dismissed_30d","0") or 0)>=4):
-            action,reason,conf="mute","The user opted out of or repeatedly dismissed similar marketing.",.88
+            action,reason,conf,decisive_rule="mute","The user opted out of or repeatedly dismissed similar marketing.",.88,"promotion_opt_out"
         elif typ in {"greeting","forward"} and (int(r.forwarded_count or 0)>=5 or member.get("group_muted_by_user")=="1"):
-            action,reason,conf="mute","Repeated forwarded social content is low-value for this user.",.86
+            action,reason,conf,decisive_rule="mute","Repeated forwarded social content is low-value for this user.",.86,"low_value_forward"
         elif self._urgent(text,r,group):
-            action,typ,reason,conf="notify",("event" if typ=="event" else "urgent"),"A direct, time-sensitive dependency requires prompt attention.",.88
+            action,typ,reason,conf,decisive_rule="notify",("event" if typ=="event" else "urgent"),"A direct, time-sensitive dependency requires prompt attention.",.88,"urgent_dependency"
         elif typ=="business_update" and rel and re.search(r"delivery|pickup|ride|booking|appointment|order|transaction",text):
-            action,reason,conf="notify","A legitimate update matches the user's active transaction or booking.",.88
+            action,reason,conf,decisive_rule="notify","A legitimate update matches the user's active transaction or booking.",.88,"active_transaction"
         elif best.score>=.78 and best.user_id==r.user_id:
-            action=best.weak_action; conf=min(.89,.68+.16*float(best.similarity)); reason={"notify":"Similar messages previously received quick engagement from this user.","digest":"Similar useful messages were opened later without urgent engagement.","mute":"Similar messages were previously dismissed or suppressed by this user."}[action]
+            action=best.weak_action; conf=min(.89,.68+.16*float(best.similarity)); decisive_rule="behavioral_analogue"; reason={"notify":"Similar messages previously received quick engagement from this user.","digest":"Similar useful messages were opened later without urgent engagement.","mute":"Similar messages were previously dismissed or suppressed by this user."}[action]
         elif typ=="promotion":
-            action="digest" if rel.get("allows_promotions")=="1" or not rel else "mute"; reason="The legitimate offer can be reviewed later." if action=="digest" else "Low-priority marketing does not match the user's preferences."; conf=.79
-        elif typ in {"spam","scam"}: action="mute"; reason="Suspicious or unwanted content should be suppressed."; conf=.84
-        elif r.conversation_type=="personal" and re.search(r"\?|can you|could you|please",text) and not re.search(r"no urgency|not urgent|tomorrow",text): action="notify"; typ="personal"; reason="A personal sender asks for a direct response."; conf=.78
+            action="digest" if rel.get("allows_promotions")=="1" or not rel else "mute"; reason="The legitimate offer can be reviewed later." if action=="digest" else "Low-priority marketing does not match the user's preferences."; conf=.79; decisive_rule="promotion_preference"
+        elif typ in {"spam","scam"}: action="mute"; reason="Suspicious or unwanted content should be suppressed."; conf=.84; decisive_rule="security"
+        elif r.conversation_type=="personal" and re.search(r"\?|can you|could you|please",text) and not re.search(r"no urgency|not urgent|tomorrow",text): action="notify"; typ="personal"; reason="A personal sender asks for a direct response."; conf=.78; decisive_rule="direct_question"
         if r.media_type and not text and media["confidence"]<.3: conf=min(conf,.69); reason="Media extraction is uncertain; contextual history supports this conservative route."
+        evidence=self.retriever.evidence(r,action,typ,decisive_rule)
         return {"message_id":r.message_id,"action":action,"message_type":typ,"reason":reason,"confidence":round(min(.98,max(.5,conf)),2),"evidence_message_ids":evidence}
-
-    def _evidence(self,top:pd.DataFrame,r:pd.Series)->str:
-        good=top[(top.score>=.65)&((top.user_id==r.user_id)|(top.similarity>=.48))].head(3).message_id.tolist(); return ";".join(good) if good else "none"
 
     @staticmethod
     def _urgent(t:str,r:pd.Series,g:dict[str,str])->bool:

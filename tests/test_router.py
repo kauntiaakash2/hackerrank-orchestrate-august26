@@ -6,6 +6,8 @@ sys.path.insert(0, str(Path("code").resolve()))
 from src.data_loader import DatasetBundle
 from src.router import Router
 from src.security import assess
+from src.retrieval import Retriever
+from src.validation import validate_output
 
 @pytest.fixture(scope="module")
 def router(): return Router(DatasetBundle.load(Path("dataset")),Path("cache/test_media.json"))
@@ -55,3 +57,20 @@ def test_media_fallbacks_and_conflicts(router):
   r=router.data.tables["messages"].iloc[0].copy(); r.update({"message_id":"x","conversation_type":"personal","group_id":"","business_id":"","sender_user_id":"u_049","message_text":"","normalized_text":"","media_type":media,"media_id":mid,"forwarded_count":"0"})
   out=router.route(r)
   assert out["action"] in {"notify","digest","mute"} and out["confidence"]<=.69
+
+def test_contradictory_high_similarity_history_is_rejected():
+ rows=[]
+ for mid,action in [("dismissed","mute"),("replied","notify")]:
+  rows.append({"message_id":mid,"user_id":"u1","conversation_type":"personal","group_id":"","business_id":"","sender_user_id":"s1","created_at":"2026-07-01","normalized_text":"can you approve the invoice now","message_opened":"1","message_replied":"1" if action=="notify" else "0","reaction_time_minutes":"2","notification_dismissed":"1" if action=="mute" else "0","muted_after_message":"0","message_reported":"0"})
+ retriever=Retriever(pd.DataFrame(rows)); incoming=pd.Series({"user_id":"u1","sender_user_id":"s1","group_id":"","business_id":"","normalized_text":"can you approve the invoice now"})
+ assert retriever.evidence(incoming,"notify","personal","direct_question")=="replied"
+ assert retriever.evidence(incoming,"mute","spam","security")=="none"
+
+def test_optional_semantic_validation_rejects_contradictory_evidence(router,tmp_path):
+ output=router.route_all(); history=router.retriever.history
+ target=output.iloc[0]
+ contradictory=history.loc[history.weak_action!=target.action,"message_id"].iloc[0]
+ output.loc[0,"evidence_message_ids"]=contradictory
+ path=tmp_path/"output.csv"; output.to_csv(path,index=False)
+ with pytest.raises(AssertionError,match="contradictory or irrelevant evidence"):
+  validate_output(path,router.data,semantic_evidence=True)
